@@ -1,0 +1,45 @@
+name: Build QEMU for iOS
+
+on:
+  workflow_dispatch:  # 手動觸發
+
+jobs:
+  build-qemu:
+    runs-on: macos-latest
+    timeout-minutes: 360  # 6 小時
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: 下載 QEMU 源碼
+        run: |
+          curl -L -o qemu.tar.xz https://download.qemu.org/qemu-11.0.4.tar.xz
+          tar -xf qemu.tar.xz
+          ls qemu-11.0.4/ | head -5
+      
+      - name: 配置 QEMU (iOS aarch64)
+        run: |
+          cd qemu-11.0.4
+          SDK=$(xcrun -sdk iphoneos --show-sdk-path)
+          export CC="xcrun -sdk iphoneos clang -arch arm64 -isysroot $SDK -mios-version-min=15.0"
+          
+          ./configure \
+            --target-list=aarch64-softmmu \
+            --enable-tcg \
+            --disable-kvm \
+            --enable-slirp \
+            --disable-vnc --disable-gtk --disable-sdl \
+            --enable-pie \
+            --cross-prefix="xcrun -sdk iphoneos " \
+            2>&1 | tail -20
+      
+      - name: 編譯
+        run: |
+          cd qemu-11.0.4
+          make -j$(sysctl -n hw.ncpu) 2>&1 | tail -30
+      
+      - name: 上傳產物
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qemu-ios-build-log
+          path: qemu-11.0.4/
