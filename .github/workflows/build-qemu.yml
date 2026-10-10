@@ -28,18 +28,17 @@ jobs:
             --disable-kvm \
             --enable-slirp \
             --disable-vnc --disable-gtk --disable-sdl \
-            --enable-pie \
-            --cross-prefix="xcrun -sdk iphoneos " \
-            2>&1 | tail -20
+            --disable-pie \
+            2>&1 | tail -40
       
       - name: 編譯
         run: |
           cd qemu-11.0.4
-          make -j$(sysctl -n hw.ncpu) 2>&1 | tail -30
+          make -j$(sysctl -n hw.ncpu)
       
-      - name: 上傳產物
-        if: always()
+      - name: 上傳配置日誌（失敗時）
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: qemu-ios-build-log
-          path: qemu-11.0.4/
+          name: qemu-config-log
+          path: qemu-11.0.4/config.log
