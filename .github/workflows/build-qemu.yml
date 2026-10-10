@@ -10,14 +10,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: 運行 UTM 官方編譯腳本
+      - name: 準備 QEMU 源碼（上游，非 UTM fork）
         run: |
-          cd build
-          chmod +x build_dependencies.sh
-          # UTM 官方腳本，會下載 QEMU（utmapp/qemu fork）和依賴並編譯
-          # -p ios -a arm64 是默認值
-          # 注意：腳本會從 utmapp/qemu 下載，不是上游
-          ./build_dependencies.sh -p ios -a arm64 2>&1 | tail -100
+          mkdir -p third_party/build
+          cd third_party/build
+          # 用戶要求：不要先用 UTM 的源碼，用上游
+          curl -L -o qemu.tar.xz https://download.qemu.org/qemu-11.0.4.tar.xz
+          tar -xf qemu.tar.xz
+          # Husk 腳本期望目錄名是 qemu-10.0.12-utm，做個符號鏈接
+          ln -sf qemu-11.0.4 qemu-10.0.12-utm
+          ls -d qemu-10.0.12-utm/
+      
+      - name: 運行 Husk 編譯腳本
+        run: |
+          chmod +x build/build_ios.sh
+          # Husk 的腳本：只編 5 個依賴（比 UTM 的 25 個少），針對 iOS 優化
+          ./build/build_ios.sh 2>&1 | tail -100
       
       - name: 上傳產物
         if: always()
