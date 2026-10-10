@@ -33,9 +33,9 @@ struct HomeView: View {
     var body: some View {
         NavigationView {
             List {
-                Section(header: Text("遊戲庫")) {
+                Section(header: Text("系統")) {
                     if games.isEmpty {
-                        Text("還沒有添加遊戲，點右上角 + 添加 APK")
+                        Text("還沒有添加系統，點右上角 + 添加")
                             .foregroundColor(.secondary)
                             .font(.caption)
                     }
