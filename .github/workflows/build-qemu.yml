@@ -27,7 +27,6 @@ jobs:
           # 不用 --cross-file（QEMU 的 configure 不認）
           ./configure \
             --target-list=aarch64-softmmu \
-            --enable-shared-lib \
             --cross-prefix="" \
             --enable-tcg \
             --disable-kvm \
