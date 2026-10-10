@@ -10,25 +10,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: 下載 UTM 的 QEMU fork
+      - name: 運行 UTM 官方編譯腳本
         run: |
           cd build
-          # Handset 腳本需要 qemu-10.0.2-utm 目錄
-          curl -L -o qemu-utm.tar.gz https://github.com/utmapp/qemu/archive/refs/tags/v10.0.2-utm.tar.gz
-          tar -xzf qemu-utm.tar.gz
-          mv qemu-10.0.2-utm qemu-10.0.2-utm 2>/dev/null || mv qemu-v10.0.2-utm qemu-10.0.2-utm
-          ls -d qemu-10.0.2-utm/
-      
-      - name: 運行 Handset 編譯腳本
-        run: |
-          cd build
-          chmod +x build-qemu-ios.sh
-          # 腳本會自己下載依賴並編譯，需要 15-30 分鐘
-          ./build-qemu-ios.sh 2>&1 | tail -50
+          chmod +x build_dependencies.sh
+          # UTM 官方腳本，會下載 QEMU 和依賴並編譯
+          # -p ios -a arm64 是默認值
+          ./build_dependencies.sh -p ios -a arm64 2>&1 | tail -100
       
       - name: 上傳產物
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: qemu-ios-sysroot
-          path: /tmp/shellphone-sysroot-iOS-TCI-arm64/
+          path: sysroot-ios-arm64/
