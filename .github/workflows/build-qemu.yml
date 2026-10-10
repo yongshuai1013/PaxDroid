@@ -14,8 +14,9 @@ jobs:
         run: |
           cd build
           chmod +x build_dependencies.sh
-          # UTM 官方腳本，會下載 QEMU 和依賴並編譯
+          # UTM 官方腳本，會下載 QEMU（utmapp/qemu fork）和依賴並編譯
           # -p ios -a arm64 是默認值
+          # 注意：腳本會從 utmapp/qemu 下載，不是上游
           ./build_dependencies.sh -p ios -a arm64 2>&1 | tail -100
       
       - name: 上傳產物
