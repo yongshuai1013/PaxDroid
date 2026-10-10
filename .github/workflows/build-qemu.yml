@@ -20,36 +20,22 @@ jobs:
         run: |
           cd qemu-11.0.4
           SDK=$(xcrun -sdk iphoneos --show-sdk-path)
+          CFLAGS="-arch arm64 -isysroot $SDK -mios-version-min=15.0 -O2"
+          LDFLAGS="-arch arm64 -isysroot $SDK -mios-version-min=15.0"
           
-          # 創建 Meson cross file（告訴 Meson 這是交叉編譯，不要運行測試程序）
-          cat > ios-cross.ini << 'CROSS'
-          [binaries]
-          c = ['xcrun', '-sdk', 'iphoneos', 'clang', '-arch', 'arm64', '-isysroot', '$SDK', '-mios-version-min=15.0']
-          cpp = ['xcrun', '-sdk', 'iphoneos', 'clang++', '-arch', 'arm64', '-isysroot', '$SDK', '-mios-version-min=15.0']
-          ar = ['xcrun', '-sdk', 'iphoneos', 'ar']
-          strip = ['xcrun', '-sdk', 'iphoneos', 'strip']
-          pkgconfig = 'pkg-config'
-          
-          [host_machine]
-          system = 'darwin'
-          cpu_family = 'aarch64'
-          cpu = 'aarch64'
-          endian = 'little'
-          
-          [properties]
-          needs_exe_wrapper = true
-          CROSS
-          # 替換 $SDK
-          sed -i '' "s|\$SDK|$SDK|g" ios-cross.ini
-          
+          # 參考 Husk 的做法：用 --extra-cflags/--extra-ldflags 傳 iOS 參數
+          # 不用 --cross-file（QEMU 的 configure 不認）
           ./configure \
             --target-list=aarch64-softmmu \
+            --enable-shared-lib \
+            --cross-prefix="" \
             --enable-tcg \
             --disable-kvm \
             --enable-slirp \
-            --disable-vnc --disable-gtk --disable-sdl \
+            --disable-vnc --disable-gtk --disable-sdl --disable-cocoa \
             --disable-pie \
-            --cross-file=ios-cross.ini
+            --extra-cflags="$CFLAGS" \
+            --extra-ldflags="$LDFLAGS"
       
       - name: 編譯
         run: |
